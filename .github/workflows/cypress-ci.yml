@@ -1,0 +1,37 @@
+name: Cypress Tests CI
+
+on:
+  push:
+    branches:
+      - master  # Run CI/CD pipeline when code is pushed to the 'master' branch
+  pull_request:
+    branches:
+      - master  # Run CI/CD pipeline on pull requests targeting the 'master' branch
+  # Schedule an overnight run at 2 AM UTC every day
+  # schedule:
+  #   - cron: '0 2 * * *'  # Uncomment to run the tests daily at 2 AM UTC
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment to run the tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3  # Check out the code from the repository
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3  # Set up Node.js environment
+        with:
+          node-version: 14  # Specify the version of Node.js to use
+
+      - name: Install dependencies
+        run: npm install  # Install all required dependencies from package.json
+
+      - name: Run Cypress tests
+        run: npx cypress run  # Run all Cypress tests in headless mode
+
+      - name: Upload Cypress test results
+        if: failure()  # Only upload test results if the tests fail
+        uses: actions/upload-artifact@v3  # Upload failure artifacts for further investigation
+        with:
+          name: cypress-failure-report  # Name of the artifact to upload
+          path: cypress/screenshots  # Path to the folder containing screenshots of failed tests
